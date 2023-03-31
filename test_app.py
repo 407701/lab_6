@@ -1,7 +1,7 @@
 import json
 import unittest
 
-from src.app import subtract, multiply, route
+from app import subtract, multiply, route
 
 class TestEndpoints(unittest.TestCase):
 
