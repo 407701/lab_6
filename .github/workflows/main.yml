@@ -1,41 +1,46 @@
-name: Build and Test
+name: CI
 
 on:
   push:
-    branches:
-      branches: [ main, master ]
+    branches: [ main, master ]
 
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-      
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.8
-      
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-      
-      - name: Build Docker image
-        run: docker build -t myapp .
-      
-      - name: Start Docker container
-        run: docker run -d -p 8000:8000 --name myapp_container myapp
-      
-      - name: Run tests
-        run: pytest
-      
-      - name: Stop Docker container
-        run: docker stop myapp_container
-      
-      - name: Post test results
-        uses: actions/upload-artifact@v2
-        with:
-          name: test-results
-          path: test_results/
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.x
+
+    - name: Install dependencies
+      run: pip install -r requirements.txt
+
+    - name: Build Docker image
+      run: docker build -t my-api .
+
+    - name: Start Docker container
+      run: docker run -d -p 5000:5000 --name my-api-container my-api
+
+    - name: Wait for the application to start
+      run: |
+        n=0
+        until [ $n -ge 5 ]
+        do
+          curl -s localhost:5000 && break
+          n=$((n+1))
+          sleep 1
+        done
+        if [ $n -ge 5 ]; then exit 1; fi
+
+    - name: Run tests
+      env:
+        API_URL: http://localhost:5000
+      run: pytest tests/test_integration.py
+
+    - name: Stop Docker container
+      run: docker stop my-api-container
