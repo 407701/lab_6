@@ -29,13 +29,13 @@ jobs:
     - name: Wait for the application to start
       run: |
         n=0
-        until [ $n -ge 5 ]
+        until [ $n -ge 10 ]
         do
           curl -s localhost:5000 && break
           n=$((n+1))
           sleep 1
         done
-        if [ $n -ge 5 ]; then exit 1; fi
+        if [ $n -ge 10 ]; then exit 1; fi
 
     - name: Run tests
       env:
